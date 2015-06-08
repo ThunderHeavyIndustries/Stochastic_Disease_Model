@@ -37,23 +37,20 @@ end
 
 # set up the simulation
 simulation_runs = 0 #how many times the simulation runs
-transmission_probability = 0.64 #sets the probability of individual getting the disease if they mate.
-mating_threshold = 0.6 #Likely hood that a given pair mate, combined mating score needs to beat this threshold (think of it as how conservative in it's sexual practices the society is at large)
 save_previous_state = false #the infected from the previous generation informs the current generation.
-gender_ratio =  0.4 # percentage of the population that is different from the other
 
 
 
 def create_population population_size, starting_infected, gender_ratio
 
   population = [] of Agent #this is our array of agents from the agent class
-  gender = ""
-
+  gender = "" #set based on gender ratio pass 4, then every 4th will be male
 
   (0..population_size-1).each do |n|
 
-    if rand > gender_ratio
+    if n % gender_ratio == 0
       gender = "male"
+      puts "male"
     else
       gender = "female"
     end
@@ -73,11 +70,41 @@ def create_population population_size, starting_infected, gender_ratio
 end
 
 
-p = create_population 200, 5, 0.5
 
-(0..25).each {|n| puts " #{p[n].id}, #{p[n].gender}, #{p[n].promiscuity}% , #{p[n].infected}" }
+
+def simulate_interaction population, mating_threshold, transmission_probability
+
+  population.each do |person|
+
+    population.each do |n_person|
+
+      next if person.id == n_person.id
+
+      if person.promiscuity + n_person.promiscuity >= mating_threshold
+
+        if rand > transmission_probability
+
+          if person.infected || n_person.infected
+
+              person.infected  = true
+              n_person.infected = true
+          end
+        end
+      end
+    end
+  end
+end
+
+
+
+p = create_population 100, 5, 4
+
+simulate_interaction p, 0.5, 0.3
+
+
+
 
 
 # For speed checking purposes
+puts "/////////////////////////////"
 puts "runtime: #{ -(t_now - Time.now) }"
-
