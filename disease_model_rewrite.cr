@@ -76,7 +76,7 @@ def simulate_interaction population, mating_threshold, transmission_probability,
 
     population.each do |id, n_person|
       
-      check_compatability person, n_person, mating_behavior
+      next if check_compatability person, n_person, mating_behavior == false
 
       if person.promiscuity + n_person.promiscuity > mating_threshold
 
@@ -140,26 +140,22 @@ def current_uninfected_count population
 end
 
 
-# set up the simulation
-simulation_runs = 1 #how many times the simulation runs
+# Set up the simulation
+simulation_runs = 10 #how many times the simulation runs
 save_previous_state = false #the infected from the previous generation informs the current generation.
-p = create_population 10, 5, 2,3
-
-p.each do |i,p|
-
-  puts "Agent #{i}, gender: #{p.gender}, sexuality: #{p.sexuality}, sick: #{p.infected}"
-
-end
-
-
+elapsed_periods = 0
+p = create_population 10000, 5, 2, 3 
 
 puts "Total population = #{p.length}"
 puts "Current infected = #{current_infected_count p}"
 
 #run the simulation
 simulation_runs.times do |s|
-  simulate_interaction p, 0.5, 0.8, "hetero"
+  simulate_interaction p, 0.5, 0.9, "hetero"
+  puts "Day #{s}, and current infected = #{current_infected_count p}"
+  elapsed_periods += 1
+  break if p.length == current_infected_count p
 end
 
-puts "After #{simulation_runs} days, current infected = #{current_infected_count p}"
+puts "After #{elapsed_periods} days, current infected = #{current_infected_count p}"
 puts "/////////////END////////////////"
