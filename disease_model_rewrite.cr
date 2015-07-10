@@ -20,6 +20,9 @@ class Agent
 
   getter sexuality
 
+  getter when_infected
+  setter when_infected
+
   def initialize id, promiscuity, gender, infected, sexuality, when_infected 
     @id = id
     @promiscuity = promiscuity
