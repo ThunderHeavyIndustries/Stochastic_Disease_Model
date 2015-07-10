@@ -94,11 +94,12 @@ end
 def update_infected infect_list, population
 
   infect_list.each do |person_id, infected_status|
+
     population[person_id].infected = infected_status
   end
 end
 
-def current_infected population
+def current_infected_count population
 
   sick_count = 0
 
@@ -112,9 +113,9 @@ def current_infected population
   return sick_count
 end
 
-def current_uninfected population
+def current_uninfected_count population
 
-  healthy = population.length - (current_infected population)
+  healthy = population.length - (current_infected_count population)
   return healthy
 end
 
@@ -127,12 +128,12 @@ save_previous_state = false #the infected from the previous generation informs t
 p = create_population 10, 5, 4
 
 puts "Total population = #{p.length}"
-puts "Current infected = #{current_infected p}"
+puts "Current infected = #{current_infected_count p}"
 
 simulation_runs.times do |s|
   simulate_interaction p, 0.5, 0.8
 end
 
-puts "After #{simulation_runs} days, current infected = #{current_infected p}"
+puts "After #{simulation_runs} days, current infected = #{current_infected_count p}"
 
 puts "/////////////END////////////////"
