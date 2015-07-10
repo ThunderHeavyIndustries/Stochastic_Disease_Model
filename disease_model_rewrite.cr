@@ -32,7 +32,7 @@ end
 
 def create_population population_size, starting_infected, gender_ratio
 
-  population = {} of Int32 => Agent #this is our array of agents from the agent class
+  population = {} of Int32 => Agent #this is our hash of agents from the agent class
   gender = "" #set based on gender ratio, pass 4 then every 4th will be male
 
   (0...population_size).each do |n|
@@ -94,8 +94,7 @@ end
 def update_infected infect_list, population
 
   infect_list.each do |person_id, infected_status|
-
-    population[person_id] = infected_status
+    population[person_id].infected = infected_status
   end
 end
 
@@ -103,7 +102,7 @@ def current_infected population
 
   sick_count = 0
 
-  population.each do |p|
+  population.each do |id, p|
 
     if p.infected
       sick_count+=1
@@ -115,7 +114,7 @@ end
 
 def current_uninfected population
 
-  healthy = population.size - (current_infected population)
+  healthy = population.length - (current_infected population)
   return healthy
 end
 
@@ -127,7 +126,7 @@ save_previous_state = false #the infected from the previous generation informs t
 
 p = create_population 10, 5, 4
 
-puts "Total population = #{p.size}"
+puts "Total population = #{p.length}"
 puts "Current infected = #{current_infected p}"
 
 simulation_runs.times do |s|
@@ -135,14 +134,5 @@ simulation_runs.times do |s|
 end
 
 puts "After #{simulation_runs} days, current infected = #{current_infected p}"
-
-
-
-
-
-
-
-
-
 
 puts "/////////////END////////////////"
