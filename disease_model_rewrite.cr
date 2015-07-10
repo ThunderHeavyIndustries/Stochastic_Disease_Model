@@ -6,9 +6,6 @@
 # with the language, as well as to revisit this code, and enjoy rewriting it in a more "ruby" way.
 # Since Ruby is my preffered language.
 
-# For speed checking purposes
-t_now = Time.now
-
 # This class defines the available information for individuals in the simulation
 class Agent
 
@@ -31,26 +28,17 @@ class Agent
     @sexuality = sexuality
     @when_infected = when_infected
   end
-
 end
-
-
-# set up the simulation
-simulation_runs = 0 #how many times the simulation runs
-save_previous_state = false #the infected from the previous generation informs the current generation.
-
-
 
 def create_population population_size, starting_infected, gender_ratio
 
-  population = [] of Agent #this is our array of agents from the agent class
-  gender = "" #set based on gender ratio pass 4, then every 4th will be male
+  population = {} of Int32 => Agent #this is our array of agents from the agent class
+  gender = "" #set based on gender ratio, pass 4 then every 4th will be male
 
-  (0..population_size-1).each do |n|
+  (0...population_size).each do |n|
 
     if n % gender_ratio == 0
       gender = "male"
-      puts "male"
     else
       gender = "female"
     end
@@ -58,53 +46,103 @@ def create_population population_size, starting_infected, gender_ratio
     if starting_infected>0
 
       agent = Agent.new n , rand, gender, true, "g", 0
-      population.push(agent)
+      population[agent.id] = agent
       starting_infected = starting_infected-1
+
     else
 
      agent = Agent.new n , rand, gender, false, "g", 0
-     population.push(agent)
-   end
+     population[agent.id] = agent
+    end
   end
   return population
 end
 
 
 
-
+# same problem as last time, I'm updating the population real time, which exponentialy grows the infected population
 def simulate_interaction population, mating_threshold, transmission_probability
 
-  population.each do |person|
+  infect_list = {} of Int32 => Bool
 
-    population.each do |n_person|
+  population.each do |id, person|
 
+    next if person.infected == false
+
+    population.each do |id, n_person|
+      
       next if person.id == n_person.id
 
-      if person.promiscuity + n_person.promiscuity >= mating_threshold
+      if person.promiscuity + n_person.promiscuity > mating_threshold
 
         if rand > transmission_probability
-
+            
           if person.infected || n_person.infected
 
-              person.infected  = true
-              n_person.infected = true
+              infect_list[person.id] = true
+              infect_list[n_person.id] = true
           end
         end
       end
     end
   end
+  update_infected infect_list, population
 end
 
 
 
-p = create_population 100, 5, 4
+def update_infected infect_list, population
 
-simulate_interaction p, 0.5, 0.3
+  infect_list.each do |person_id, infected_status|
+
+    population[person_id] = infected_status
+  end
+end
+
+def current_infected population
+
+  sick_count = 0
+
+  population.each do |p|
+
+    if p.infected
+      sick_count+=1
+    end
+  end
+
+  return sick_count
+end
+
+def current_uninfected population
+
+  healthy = population.size - (current_infected population)
+  return healthy
+end
+
+
+# set up the simulation
+simulation_runs = 1 #how many times the simulation runs
+save_previous_state = false #the infected from the previous generation informs the current generation.
+
+
+p = create_population 10, 5, 4
+
+puts "Total population = #{p.size}"
+puts "Current infected = #{current_infected p}"
+
+simulation_runs.times do |s|
+  simulate_interaction p, 0.5, 0.8
+end
+
+puts "After #{simulation_runs} days, current infected = #{current_infected p}"
 
 
 
 
 
-# For speed checking purposes
-puts "/////////////////////////////"
-puts "runtime: #{ -(t_now - Time.now) }"
+
+
+
+
+
+puts "/////////////END////////////////"
