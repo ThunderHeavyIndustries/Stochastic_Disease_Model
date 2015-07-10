@@ -29,7 +29,7 @@ class Agent
     @when_infected = when_infected
   end
 end
-
+#//////////////////////////////////////////////
 #TODO currently this doesn't evenly distribute the parameters
 def create_population population_size, starting_infected, gender_ratio, hetero_homo_ratio
 
@@ -65,8 +65,8 @@ def create_population population_size, starting_infected, gender_ratio, hetero_h
   end
   return population
 end
-
-def simulate_interaction population, mating_threshold, transmission_probability, mating_behavior
+#//////////////////////////////////////////////
+def simulate_interaction population, mating_threshold, transmission_probability, mating_behavior, elapsed_periods
 
   infect_list = {} of Int32 => Bool
 
@@ -79,9 +79,8 @@ def simulate_interaction population, mating_threshold, transmission_probability,
       next if check_compatability person, n_person, mating_behavior == false
 
       if person.promiscuity + n_person.promiscuity > mating_threshold
-
-        if rand > transmission_probability
-            
+          r = rand
+        if r > transmission_probability
           if person.infected || n_person.infected
 
               infect_list[person.id] = true
@@ -91,9 +90,9 @@ def simulate_interaction population, mating_threshold, transmission_probability,
       end
     end
   end
-  update_infected infect_list, population
+  update_infected infect_list, population, elapsed_periods
 end
-
+#//////////////////////////////////////////////
 def check_compatability person, n_person, mating_behavior
   #lets play with the myraid permutations of human sexual interactions:
       if person.id == n_person.id 
@@ -110,15 +109,16 @@ def check_compatability person, n_person, mating_behavior
 
   return compatible
 end
-
-def update_infected infect_list, population
+#//////////////////////////////////////////////
+def update_infected infect_list, population, elapsed_periods
 
   infect_list.each do |person_id, infected_status|
 
     population[person_id].infected = infected_status
+    population[person_id].when_infected = elapsed_periods
   end
 end
-
+#//////////////////////////////////////////////
 def current_infected_count population
 
   sick_count = 0
@@ -132,30 +132,43 @@ def current_infected_count population
 
   return sick_count
 end
-
+#//////////////////////////////////////////////
 def current_uninfected_count population
 
   healthy = population.length - (current_infected_count population)
   return healthy
 end
+#//////////////////////////////////////////////
 
 
-# Set up the simulation
+
+# Set up the simulation. We could pass these directly, but it's easier to remember everything this way.
 simulation_runs = 10 #how many times the simulation runs
 save_previous_state = false #the infected from the previous generation informs the current generation.
-elapsed_periods = 0
-p = create_population 10000, 5, 2, 3 
+elapsed_periods = 0 #for tracking how many days have passed
+population_size = 10000 #how big is the population
+starting_infected = 5 # how many are sick at the start
+gender_ratio = 2 #men to women, or women to men
+hetero_homo_ratio =3 #how many are homosexual vs heterosexual TODO bisexual
+transmission_probability = 5
+mating_threshold = 0.9
+
+p = create_population population_size, starting_infected, gender_ratio, hetero_homo_ratio 
+#//////////////////////////////////////////////
 
 puts "Total population = #{p.length}"
-puts "Current infected = #{current_infected_count p}"
+percent_sick = ((current_infected_count p)/(p.length)).to_f
+puts "% sick = #{percent_sick}"
+#//////////////////////////////////////////////
 
-#run the simulation
+#Run the simulation
 simulation_runs.times do |s|
-  simulate_interaction p, 0.5, 0.9, "hetero"
-  puts "Day #{s}, and current infected = #{current_infected_count p}"
   elapsed_periods += 1
+
+  simulate_interaction p, transmission_probability, mating_threshold, "hetero", elapsed_periods
+
+  puts "Day #{s}, and current infected = #{current_infected_count p}"
   break if p.length == current_infected_count p
 end
-
 puts "After #{elapsed_periods} days, current infected = #{current_infected_count p}"
 puts "/////////////END////////////////"
