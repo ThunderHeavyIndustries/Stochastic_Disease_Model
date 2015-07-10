@@ -76,13 +76,7 @@ def simulate_interaction population, mating_threshold, transmission_probability,
 
     population.each do |id, n_person|
       
-      #lets play with the myraid permutations of human sexual interactions:
-      next if person.id == n_person.id # Self love is harmless
-      next if mating_behavior == "hetero" && person.gender == n_person.gender 
-      next if mating_behavior == "hetero" && person.sexuality || n_person.sexuality != "hetero"
-      next if mating_behavior == "homo" && person.gender != n_person.gender
-      next if mating_behavior == "homo" && person.sexuality || n_person.sexuality != "homo"
-
+      check_compatability person, n_person, mating_behavior
 
       if person.promiscuity + n_person.promiscuity > mating_threshold
 
@@ -100,7 +94,22 @@ def simulate_interaction population, mating_threshold, transmission_probability,
   update_infected infect_list, population
 end
 
+def check_compatability person, n_person, mating_behavior
+  #lets play with the myraid permutations of human sexual interactions:
+      if person.id == n_person.id 
+        compatible = false # Self love is harmless
+      elsif mating_behavior == "hetero" && person.gender == n_person.gender 
+        compatible = false
+      elsif mating_behavior == "hetero" && person.sexuality || n_person.sexuality != "hetero"
+        compatible = false
+      elsif mating_behavior == "homo" && person.gender != n_person.gender
+        compatible = false
+      elsif mating_behavior == "homo" && person.sexuality || n_person.sexuality != "homo"
+        compatible = false
+      end
 
+  return compatible
+end
 
 def update_infected infect_list, population
 
