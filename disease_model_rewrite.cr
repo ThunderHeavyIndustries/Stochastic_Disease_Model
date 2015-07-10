@@ -30,10 +30,12 @@ class Agent
   end
 end
 
-def create_population population_size, starting_infected, gender_ratio
+#TODO currently this doesn't evenly distribute the parameters
+def create_population population_size, starting_infected, gender_ratio, hetero_homo_ratio
 
-  population = {} of Int32 => Agent #this is our hash of agents from the agent class
-  gender = "" #set based on gender ratio, pass 4 then every 4th will be male
+  # Gender set based on gender ratio, pass 4 then every 4th will be male
+
+  population = {} of Int32 => Agent #this is our hash of agents from the agent class identified by their id
 
   (0...population_size).each do |n|
 
@@ -43,25 +45,28 @@ def create_population population_size, starting_infected, gender_ratio
       gender = "female"
     end
 
+    if n % hetero_homo_ratio == 0
+      sexuality = "homo"
+    else
+      sexuality = "hetero"
+    end
+
     if starting_infected>0
 
-      agent = Agent.new n , rand, gender, true, "g", 0
+      agent = Agent.new n , rand, gender, true, sexuality, 0
       population[agent.id] = agent
       starting_infected = starting_infected-1
 
     else
 
-     agent = Agent.new n , rand, gender, false, "g", 0
+     agent = Agent.new n , rand, gender, false, sexuality, 0
      population[agent.id] = agent
     end
   end
   return population
 end
 
-
-
-# same problem as last time, I'm updating the population real time, which exponentialy grows the infected population
-def simulate_interaction population, mating_threshold, transmission_probability
+def simulate_interaction population, mating_threshold, transmission_probability, mating_behavior
 
   infect_list = {} of Int32 => Bool
 
@@ -71,7 +76,13 @@ def simulate_interaction population, mating_threshold, transmission_probability
 
     population.each do |id, n_person|
       
-      next if person.id == n_person.id
+      #lets play with the myraid permutations of human sexual interactions:
+      next if person.id == n_person.id # Self love is harmless
+      next if mating_behavior == "hetero" && person.gender == n_person.gender 
+      next if mating_behavior == "hetero" && person.sexuality || n_person.sexuality != "hetero"
+      next if mating_behavior == "homo" && person.gender != n_person.gender
+      next if mating_behavior == "homo" && person.sexuality || n_person.sexuality != "homo"
+
 
       if person.promiscuity + n_person.promiscuity > mating_threshold
 
@@ -123,17 +134,23 @@ end
 # set up the simulation
 simulation_runs = 1 #how many times the simulation runs
 save_previous_state = false #the infected from the previous generation informs the current generation.
+p = create_population 10, 5, 2,3
+
+p.each do |i,p|
+
+  puts "Agent #{i}, gender: #{p.gender}, sexuality: #{p.sexuality}, sick: #{p.infected}"
+
+end
 
 
-p = create_population 10, 5, 4
 
 puts "Total population = #{p.length}"
 puts "Current infected = #{current_infected_count p}"
 
+#run the simulation
 simulation_runs.times do |s|
-  simulate_interaction p, 0.5, 0.8
+  simulate_interaction p, 0.5, 0.8, "hetero"
 end
 
 puts "After #{simulation_runs} days, current infected = #{current_infected_count p}"
-
 puts "/////////////END////////////////"
